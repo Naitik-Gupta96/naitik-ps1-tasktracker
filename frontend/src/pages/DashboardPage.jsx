@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 
+import AppSidebar from '../components/AppSidebar'
 import TaskCard from '../components/TaskCard'
 import TaskModal from '../components/TaskModal'
 import { useAuthStore } from '../store/authStore'
@@ -28,6 +28,7 @@ function DashboardPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     fetchTasks()
@@ -66,38 +67,20 @@ function DashboardPage() {
 
   return (
     <main className="dashboard-shell">
-      <aside className="sidebar">
-        <div className="sidebar-brand">
-          <span className="brand-mark">TF</span>
-          <div>
-            <strong>TaskFlow</strong>
-            <p>Personal task tracker</p>
-          </div>
-        </div>
-
-        <nav className="sidebar-nav">
-          <Link to="/dashboard" className="sidebar-link sidebar-link-active">
-            Dashboard
-          </Link>
-          <Link to="/profile" className="sidebar-link">
-            Profile
-          </Link>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div>
-            <strong>{user?.full_name}</strong>
-            <p>{user?.email}</p>
-          </div>
-          <button type="button" className="ghost-button" onClick={logout}>
-            Log out
-          </button>
-        </div>
-      </aside>
+      <AppSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} user={user} onLogout={logout} />
 
       <section className="dashboard-main">
+        <div className="topbar">
+          <button type="button" className="menu-button" onClick={() => setIsSidebarOpen(true)}>
+            Menu
+          </button>
+          <div className="topbar-account">
+            <span>{user?.full_name}</span>
+          </div>
+        </div>
+
         <header className="dashboard-header">
-          <div>
+          <div className="header-copy">
             <p className="section-tag">Dashboard</p>
             <h1>Focus on the next task that matters.</h1>
           </div>
@@ -109,6 +92,7 @@ function DashboardPage() {
         <section className="stats-grid">
           {statsLoading ? (
             <>
+              <div className="stat-card skeleton-card" />
               <div className="stat-card skeleton-card" />
               <div className="stat-card skeleton-card" />
               <div className="stat-card skeleton-card" />
@@ -126,6 +110,10 @@ function DashboardPage() {
               <article className="stat-card">
                 <span>Completion rate</span>
                 <strong>{stats?.completion_rate ?? 0}%</strong>
+              </article>
+              <article className="stat-card">
+                <span>In progress</span>
+                <strong>{stats?.in_progress ?? 0}</strong>
               </article>
             </>
           )}

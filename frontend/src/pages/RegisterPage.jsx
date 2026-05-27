@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 
 import { registerUser } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
+import { getApiErrorMessage } from '../utils/apiError'
 
 function RegisterPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [form, setForm] = useState({ full_name: '', email: '', password: '' })
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -24,9 +30,9 @@ function RegisterPage() {
     try {
       const data = await registerUser(form)
       login(data.access_token, data.user)
-      navigate('/dashboard')
+      navigate('/dashboard', { replace: true })
     } catch (requestError) {
-      setError(requestError.response?.data?.detail || 'Unable to create the account.')
+      setError(getApiErrorMessage(requestError, 'Unable to create the account.'))
     } finally {
       setIsSubmitting(false)
     }

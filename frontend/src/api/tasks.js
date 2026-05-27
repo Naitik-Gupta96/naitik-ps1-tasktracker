@@ -1,7 +1,13 @@
 import api from './client'
 
+function compactParams(params) {
+  return Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== '' && value !== null && value !== undefined),
+  )
+}
+
 export async function getTasks(params) {
-  const response = await api.get('/tasks', { params })
+  const response = await api.get('/tasks', { params: compactParams(params) })
   return response.data
 }
 

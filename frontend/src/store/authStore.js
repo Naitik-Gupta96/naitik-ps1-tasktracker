@@ -17,7 +17,7 @@ export const useAuthStore = create((set) => ({
   isReady: false,
   login: (token, user) => {
     persistAuthState(token, user)
-    set({ token, user, isAuthenticated: true })
+    set({ token, user, isAuthenticated: true, isReady: true })
   },
   logout: () => {
     clearAuthState()

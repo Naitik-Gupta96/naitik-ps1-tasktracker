@@ -2,6 +2,7 @@ import { create } from 'zustand'
 
 import { getStats } from '../api/stats'
 import { createTask, deleteTask, getTasks, patchTask } from '../api/tasks'
+import { getApiErrorMessage } from '../utils/apiError'
 
 const defaultFilters = {
   status: '',
@@ -37,7 +38,7 @@ export const useTaskStore = create((set, get) => ({
     } catch (error) {
       set({
         isLoading: false,
-        error: error.response?.data?.detail || 'Unable to load tasks right now.',
+        error: getApiErrorMessage(error, 'Unable to load tasks right now.'),
       })
     }
   },
@@ -62,11 +63,12 @@ export const useTaskStore = create((set, get) => ({
       await get().loadStats()
       return { ok: true }
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to create the task.')
       set({
         isSaving: false,
-        error: error.response?.data?.detail || 'Unable to create the task.',
+        error: message,
       })
-      return { ok: false, message: error.response?.data?.detail || 'Unable to create the task.' }
+      return { ok: false, message }
     }
   },
   updateTask: async (taskId, payload) => {
@@ -80,11 +82,12 @@ export const useTaskStore = create((set, get) => ({
       await get().loadStats()
       return { ok: true }
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to update the task.')
       set({
         isSaving: false,
-        error: error.response?.data?.detail || 'Unable to update the task.',
+        error: message,
       })
-      return { ok: false, message: error.response?.data?.detail || 'Unable to update the task.' }
+      return { ok: false, message }
     }
   },
   removeTask: async (taskId) => {
@@ -99,11 +102,12 @@ export const useTaskStore = create((set, get) => ({
       await get().loadStats()
       return { ok: true }
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to delete the task.')
       set({
         isSaving: false,
-        error: error.response?.data?.detail || 'Unable to delete the task.',
+        error: message,
       })
-      return { ok: false, message: error.response?.data?.detail || 'Unable to delete the task.' }
+      return { ok: false, message }
     }
   },
   reset: () => set({ tasks: [], total: 0, error: '', stats: null, filters: defaultFilters }),
