@@ -7,19 +7,23 @@ import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
+import RouteErrorPage from './pages/RouteErrorPage'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <LandingPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '/register',
     element: <RegisterPage />,
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '/dashboard',
@@ -28,6 +32,7 @@ export const router = createBrowserRouter([
         <DashboardPage />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '/profile',
@@ -36,9 +41,11 @@ export const router = createBrowserRouter([
         <ProfilePage />
       </ProtectedRoute>
     ),
+    errorElement: <RouteErrorPage />,
   },
   {
     path: '*',
     element: <NotFoundPage />,
+    errorElement: <RouteErrorPage />,
   },
 ])
