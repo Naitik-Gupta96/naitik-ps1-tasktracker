@@ -2,14 +2,18 @@ from __future__ import annotations
 
 import os
 from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token as google_id_token
 from sqlalchemy import case, func, or_
 from sqlalchemy.orm import Session
 
 import auth
+import mailer
 import models
 import schemas
 from database import Base, engine, get_db
@@ -51,6 +55,11 @@ PRIORITY_RANK = {
 }
 
 
+@lru_cache(maxsize=1)
+def get_google_request() -> google_requests.Request:
+    return google_requests.Request()
+
+
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -74,6 +83,43 @@ def build_token_response(user: models.User) -> schemas.TokenResponse:
     )
 
 
+def get_user_by_email(email: str, db: Session) -> models.User | None:
+    return db.query(models.User).filter(models.User.email == email.lower()).first()
+
+
+def create_google_placeholder_password() -> str:
+    return auth.hash_password(f"google-oauth-{datetime.now(timezone.utc).timestamp()}")
+
+
+def verify_google_credential(credential: str) -> dict:
+    raw_google_client_ids = os.getenv("GOOGLE_CLIENT_ID", "")
+    google_client_ids = [client_id.strip() for client_id in raw_google_client_ids.split(",") if client_id.strip()]
+    if not google_client_ids:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Google sign-in is not configured")
+
+    payload = None
+    for google_client_id in google_client_ids:
+        try:
+            payload = google_id_token.verify_oauth2_token(credential, get_google_request(), google_client_id)
+            break
+        except ValueError:
+            continue
+
+    if payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google credential for this environment. Check your Google client ID and system clock.",
+        )
+
+    if payload.get("iss") not in {"accounts.google.com", "https://accounts.google.com"}:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Google credential")
+
+    if not payload.get("email") or not payload.get("email_verified"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Google account email is not verified")
+
+    return payload
+
+
 def normalize_text(value: str | None) -> str | None:
     if value is None:
         return None
@@ -89,7 +135,7 @@ def health() -> dict[str, str]:
 @app.post("/auth/register", response_model=schemas.TokenResponse, status_code=status.HTTP_201_CREATED)
 def register_user(payload: schemas.UserRegister, db: Session = Depends(get_db)) -> schemas.TokenResponse:
     email = payload.email.lower()
-    existing_user = db.query(models.User).filter(models.User.email == email).first()
+    existing_user = get_user_by_email(email, db)
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
@@ -107,9 +153,60 @@ def register_user(payload: schemas.UserRegister, db: Session = Depends(get_db)) 
 @app.post("/auth/login", response_model=schemas.TokenResponse)
 def login_user(payload: schemas.UserLogin, db: Session = Depends(get_db)) -> schemas.TokenResponse:
     email = payload.email.lower()
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = get_user_by_email(email, db)
     if user is None or not auth.verify_password(payload.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    return build_token_response(user)
+
+
+def upsert_google_profile(user: models.User, google_payload: dict, db: Session) -> models.User:
+    updated = False
+    if not user.avatar_url and google_payload.get("picture"):
+        user.avatar_url = google_payload["picture"]
+        updated = True
+    if updated:
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+@app.post("/auth/google/login", response_model=schemas.TokenResponse)
+def login_with_google(payload: schemas.GoogleAuthRequest, db: Session = Depends(get_db)) -> schemas.TokenResponse:
+    google_payload = verify_google_credential(payload.credential)
+    email = google_payload["email"].lower()
+    user = get_user_by_email(email, db)
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No account exists for this Google email. Use Google sign up first.",
+        )
+
+    user = upsert_google_profile(user, google_payload, db)
+    return build_token_response(user)
+
+
+@app.post("/auth/google/register", response_model=schemas.TokenResponse, status_code=status.HTTP_201_CREATED)
+def register_with_google(payload: schemas.GoogleAuthRequest, db: Session = Depends(get_db)) -> schemas.TokenResponse:
+    google_payload = verify_google_credential(payload.credential)
+    email = google_payload["email"].lower()
+    user = get_user_by_email(email, db)
+
+    if user is not None:
+        user = upsert_google_profile(user, google_payload, db)
+        return build_token_response(user)
+
+    full_name = (google_payload.get("name") or email.split("@")[0]).strip()
+    user = models.User(
+        email=email,
+        hashed_password=create_google_placeholder_password(),
+        full_name=full_name,
+        avatar_url=google_payload.get("picture"),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
     return build_token_response(user)
 
 
@@ -151,6 +248,48 @@ def update_password(
     db.add(current_user)
     db.commit()
     return {"message": "Password updated successfully"}
+
+
+@app.post("/auth/forgot-password", response_model=schemas.MessageResponse)
+def forgot_password(payload: schemas.ForgotPasswordRequest, db: Session = Depends(get_db)) -> schemas.MessageResponse:
+    user = get_user_by_email(payload.email, db)
+
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No account exists for this email.")
+
+    if not mailer.mail_is_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Password reset email is not configured on the server.",
+        )
+
+    reset_token = auth.create_password_reset_token(user.email)
+
+    try:
+        mailer.send_password_reset_email(user.email, reset_token)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send reset email: {exc}",
+        ) from exc
+
+    return schemas.MessageResponse(message="Password reset email sent successfully.")
+
+
+@app.post("/auth/reset-password", response_model=schemas.MessageResponse)
+def reset_password(payload: schemas.ResetPasswordRequest, db: Session = Depends(get_db)) -> schemas.MessageResponse:
+    email = auth.decode_password_reset_token(payload.token)
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link is invalid or expired")
+
+    user = get_user_by_email(email, db)
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Reset link is invalid or expired")
+
+    user.hashed_password = auth.hash_password(payload.new_password)
+    db.add(user)
+    db.commit()
+    return schemas.MessageResponse(message="Password reset successfully")
 
 
 @app.get("/tasks", response_model=schemas.TaskListResponse)

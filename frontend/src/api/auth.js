@@ -10,6 +10,31 @@ export async function loginUser(payload) {
   return response.data
 }
 
+
+export async function loginWithGoogle(credential) {
+  const response = await api.post('/auth/google/login', { credential })
+  return response.data
+}
+
+
+export async function registerWithGoogle(credential) {
+  const response = await api.post('/auth/google/register', { credential })
+  return response.data
+}
+
+
+export async function requestPasswordReset(payload) {
+  const response = await api.post('/auth/forgot-password', payload)
+  return response.data
+}
+
+
+export async function resetPassword(payload) {
+  const response = await api.post('/auth/reset-password', payload)
+  return response.data
+}
+
+
 export async function fetchCurrentUser() {
   const response = await api.get('/auth/me')
   return response.data

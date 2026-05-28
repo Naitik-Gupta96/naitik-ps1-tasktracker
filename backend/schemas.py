@@ -19,6 +19,10 @@ class UserLogin(BaseModel):
     password: str
 
 
+class GoogleAuthRequest(BaseModel):
+    credential: str = Field(..., min_length=1)
+
+
 class UserOut(BaseModel):
     id: int
     email: str
@@ -42,10 +46,23 @@ class PasswordUpdate(BaseModel):
     new_password: str = Field(..., min_length=8)
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
     user: UserOut
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 
 class TaskBase(BaseModel):

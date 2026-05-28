@@ -1,6 +1,14 @@
 import axios from 'axios'
 
 const STORAGE_KEY = 'taskflow-auth'
+const PUBLIC_AUTH_PATHS = new Set([
+  '/auth/login',
+  '/auth/register',
+  '/auth/google/login',
+  '/auth/google/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+])
 
 function getStoredToken() {
   try {
@@ -34,7 +42,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestPath = error.config?.url || ''
+    const isPublicAuthRequest = PUBLIC_AUTH_PATHS.has(requestPath)
+
+    if (error.response?.status === 401 && !isPublicAuthRequest) {
       window.localStorage.removeItem(STORAGE_KEY)
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'

@@ -255,6 +255,41 @@ textarea:focus {
   color: #7dd3fc;
 }
 
+.auth-secondary-button {
+  background: transparent;
+  border: 0;
+  color: #7dd3fc;
+  padding: 0;
+  text-align: left;
+}
+
+.auth-divider {
+  position: relative;
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px solid var(--border);
+}
+
+.auth-divider span {
+  position: relative;
+  padding: 0 0.85rem;
+  background: rgba(17, 24, 39, 0.86);
+}
+
+.google-auth-slot {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
 .screen-loader,
 .not-found-shell {
   min-height: 100vh;

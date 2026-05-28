@@ -8,6 +8,7 @@ from passlib.context import CryptContext
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me-please-123456")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
+PASSWORD_RESET_TOKEN_EXPIRE_MINUTES = int(os.getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -26,9 +27,27 @@ def create_access_token(subject: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
+def create_password_reset_token(email: str) -> str:
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=PASSWORD_RESET_TOKEN_EXPIRE_MINUTES)
+    payload = {"sub": email, "scope": "password_reset", "exp": expires_at}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
 def decode_access_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+    return payload.get("sub")
+
+
+def decode_password_reset_token(token: str) -> str | None:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except JWTError:
+        return None
+
+    if payload.get("scope") != "password_reset":
+        return None
+
     return payload.get("sub")

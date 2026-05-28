@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 
-import { registerUser } from '../api/auth'
+import GoogleAuthButton from '../components/GoogleAuthButton'
+import { registerUser, registerWithGoogle } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { getApiErrorMessage } from '../utils/apiError'
 
@@ -38,6 +39,21 @@ function RegisterPage() {
     }
   }
 
+  async function handleGoogleRegister(credential) {
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const data = await registerWithGoogle(credential)
+      login(data.access_token, data.user)
+      navigate('/dashboard', { replace: true })
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Unable to sign up with Google.'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <main className="auth-shell">
       <section className="auth-panel">
@@ -68,6 +84,9 @@ function RegisterPage() {
           <button className="primary-button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Creating account...' : 'Create account'}
           </button>
+
+          <div className="auth-divider"><span>or</span></div>
+          <GoogleAuthButton onCredential={handleGoogleRegister} onError={setError} text="signup_with" />
 
           <p className="auth-switch">
             Already have an account?

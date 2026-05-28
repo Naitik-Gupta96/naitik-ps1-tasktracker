@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 
-import { loginUser } from '../api/auth'
+import GoogleAuthButton from '../components/GoogleAuthButton'
+import { loginUser, loginWithGoogle } from '../api/auth'
 import { useAuthStore } from '../store/authStore'
 import { getApiErrorMessage } from '../utils/apiError'
 
@@ -38,6 +39,21 @@ function LoginPage() {
     }
   }
 
+  async function handleGoogleLogin(credential) {
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const data = await loginWithGoogle(credential)
+      login(data.access_token, data.user)
+      navigate('/dashboard', { replace: true })
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, 'Unable to sign in with Google.'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <main className="auth-shell">
       <section className="auth-panel">
@@ -63,6 +79,13 @@ function LoginPage() {
           <button className="primary-button" type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Logging in...' : 'Log in'}
           </button>
+
+          <button className="auth-secondary-button" type="button" onClick={() => navigate('/forgot-password')}>
+            Forgot password?
+          </button>
+
+          <div className="auth-divider"><span>or</span></div>
+          <GoogleAuthButton onCredential={handleGoogleLogin} onError={setError} text="signin_with" />
 
           <p className="auth-switch">
             Need an account?

@@ -2,11 +2,13 @@ import { createBrowserRouter } from 'react-router-dom'
 
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardPage from './pages/DashboardPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 import RouteErrorPage from './pages/RouteErrorPage'
 
 export const router = createBrowserRouter([
@@ -18,6 +20,16 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+    errorElement: <RouteErrorPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
+    errorElement: <RouteErrorPage />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
     errorElement: <RouteErrorPage />,
   },
   {
