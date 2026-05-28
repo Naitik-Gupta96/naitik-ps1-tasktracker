@@ -52,35 +52,6 @@ The application is designed around a simple workflow:
 
 ## Screenshots
 
-<<<<<<< HEAD
-1. Landing or Login screen
-  <img width="1919" height="1126" alt="image" src="https://github.com/user-attachments/assets/aae99bc4-3800-4b66-83af-5ca678a73778" />
-
-
-2. Register screen
-  <img width="1896" height="1136" alt="image" src="https://github.com/user-attachments/assets/3e7969f6-a583-491c-93c4-ff744a3c40b2" />
-
-
-3. Dashboard with tasks
-<img width="1738" height="974" alt="image" src="https://github.com/user-attachments/assets/9240b5fe-9a46-425c-9283-be5216e62090" />
-
-
-4. Task modal
-<img width="1893" height="971" alt="image" src="https://github.com/user-attachments/assets/76dbaf10-a393-4cfd-9832-7a796b17c406" />
-
-
-5. Profile screen
-  <img width="1874" height="977" alt="image" src="https://github.com/user-attachments/assets/b17fd62f-70eb-4192-a32e-999fc1fd7008" />
-
-
-6. Forgot password / reset password
- <img width="1900" height="885" alt="image" src="https://github.com/user-attachments/assets/8d6c15af-d2ef-4aec-b876-5e5c8301a78c" />
-
-
-7. Mobile view
-<img width="620" height="1386" alt="WhatsApp Image 2026-05-28 at 14 29 40" src="https://github.com/user-attachments/assets/6df92b91-a10e-47c6-8e5f-b02542f7a7f5" />
-
-=======
 ### 1. Landing / Login
 
 Public-facing login screen with standard email login and Google sign-in option.
@@ -122,7 +93,7 @@ Forgot-password / reset-password flow for recovering account access.
 Responsive mobile layout showing the application working on a narrow screen.
 
 <img width="620" height="1386" alt="Mobile view" src="https://github.com/user-attachments/assets/6df92b91-a10e-47c6-8e5f-b02542f7a7f5" />
->>>>>>> e74e4c8 (Finalize README for submission)
+
 
 ## Project Structure
 
