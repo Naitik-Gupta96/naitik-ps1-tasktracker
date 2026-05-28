@@ -83,11 +83,29 @@ function DashboardPage() {
           <div className="header-copy">
             <p className="section-tag">Dashboard</p>
             <h1>Focus on the next task that matters.</h1>
+            <p className="dashboard-subcopy">
+              Keep your work queue tight, update status quickly, and use search to pull the next item into focus.
+            </p>
           </div>
           <button type="button" className="primary-button" onClick={openNewTaskModal}>
             New task
           </button>
         </header>
+
+        <section className="dashboard-summary-strip">
+          <article className="summary-chip">
+            <span>Visible tasks</span>
+            <strong>{total}</strong>
+          </article>
+          <article className="summary-chip">
+            <span>Search</span>
+            <strong>{filters.search ? 'Active' : 'None'}</strong>
+          </article>
+          <article className="summary-chip">
+            <span>Status filter</span>
+            <strong>{filters.status || 'All'}</strong>
+          </article>
+        </section>
 
         <section className="stats-grid">
           {statsLoading ? (
@@ -139,6 +157,10 @@ function DashboardPage() {
               <option value="archived">Archived</option>
             </select>
           </label>
+
+          <button type="button" className="ghost-button toolbar-clear" onClick={() => setFilters({ search: '', status: '' })}>
+            Clear filters
+          </button>
         </section>
 
         {error ? <p className="banner-error">{error}</p> : null}

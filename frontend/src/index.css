@@ -460,10 +460,45 @@ textarea:focus {
   min-width: 0;
 }
 
+.dashboard-subcopy {
+  margin: 0.9rem 0 0;
+  max-width: 58ch;
+  color: var(--text-soft);
+  font-size: 1rem;
+}
+
 .dashboard-header h1,
 .profile-header h1 {
   max-width: 12ch;
   overflow-wrap: anywhere;
+}
+
+.dashboard-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.summary-chip {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(11, 18, 32, 0.68);
+}
+
+.summary-chip span,
+.task-meta-label,
+.task-card-footnote {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.summary-chip strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.08rem;
+  text-transform: capitalize;
 }
 
 .stats-grid,
@@ -480,14 +515,19 @@ textarea:focus {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: minmax(0, 1fr) 220px auto;
   gap: 1rem;
   margin-top: 1.5rem;
+  align-items: end;
 }
 
 .toolbar-field {
   display: grid;
   gap: 0.45rem;
+}
+
+.toolbar-clear {
+  height: fit-content;
 }
 
 .task-panel {
@@ -508,16 +548,49 @@ textarea:focus {
   border-radius: 20px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(16, 24, 38, 0.88));
+  display: grid;
+  gap: 1rem;
 }
 
 .task-card h3 {
-  margin: 1rem 0 0.6rem;
+  margin: 0;
   font-size: 1.15rem;
+  line-height: 1.2;
 }
 
 .task-card p {
   margin: 0;
   color: var(--text-soft);
+}
+
+.task-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.task-card-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.task-meta-item {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.task-meta-item strong {
+  font-size: 0.95rem;
+}
+
+.task-meta-muted {
+  color: #cbd5e1;
+  opacity: 0.72;
 }
 
 .profile-card-top {
@@ -602,12 +675,26 @@ textarea:focus {
   width: min(720px, 100%);
   padding: 1.4rem;
   border-radius: 28px;
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
 }
 
 .modal-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+.modal-intro {
+  padding: 0.95rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.modal-intro p {
+  margin: 0;
+  color: var(--text-soft);
 }
 
 .modal-actions {
@@ -666,6 +753,7 @@ textarea:focus {
 }
 
 @media (max-width: 980px) {
+  .dashboard-summary-strip,
   .stats-grid,
   .profile-grid,
   .toolbar,
@@ -698,5 +786,20 @@ textarea:focus {
   .profile-header h1,
   .not-found-shell h1 {
     font-size: 2.5rem;
+  }
+
+  .task-card-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .task-actions,
+  .modal-actions {
+    width: 100%;
+  }
+
+  .task-actions > button,
+  .modal-actions > button,
+  .toolbar-clear {
+    width: 100%;
   }
 }

@@ -77,6 +77,10 @@ function TaskModal({ isOpen, task, onClose, onSubmit, isSaving }) {
         </div>
 
         <form className="modal-form" onSubmit={handleSubmit}>
+          <div className="modal-intro">
+            <p>Keep tasks clear, short, and easy to scan once they land on the dashboard.</p>
+          </div>
+
           <label>
             <span>Title</span>
             <input
