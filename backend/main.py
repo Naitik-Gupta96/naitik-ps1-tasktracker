@@ -20,10 +20,17 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="TaskFlow API", version="1.0.0")
 
 default_frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+configured_frontend_origins = [
+    origin.strip()
+    for origin in default_frontend_origin.split(",")
+    if origin.strip()
+]
+
 allowed_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    default_frontend_origin,
+    "https://personal-task-tracker.up.railway.app",
+    *configured_frontend_origins,
 ]
 
 app.add_middleware(
